@@ -6,6 +6,8 @@ import static android.content.pm.PermissionInfo.PROTECTION_SIGNATURE;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.accessibilityservice.AccessibilityServiceInfo;
+import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -13,9 +15,13 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager;
 import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.TextView;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,7 +46,38 @@ public class MainActivity extends AppCompatActivity {
         };
         button_logPM.setOnClickListener(onClickListener_logPM);
 
+        //LogAM Button
+        Button button_logAM = (Button) findViewById(R.id.button_logAM);
+        setup_button(button_logAM, "log AM");
+        View.OnClickListener onClickListener_logAM = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                logAM(textView_log);
+            }
+        };
+        button_logAM.setOnClickListener(onClickListener_logAM);
 
+        //Scan Button
+        Button button_scan = (Button) findViewById(R.id.button_scan);
+        setup_button(button_scan, "SCAN");
+        View.OnClickListener onClickListener_scan = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                scanPermission(textView_log);
+            }
+        };
+        button_scan.setOnClickListener(onClickListener_scan);
+
+        //CLEAR BUTTON
+        Button button_clear = (Button) findViewById(R.id.button_clear);
+        setup_button(button_clear, "CLEAR");
+        View.OnClickListener onClickListener_clear = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                print_banner(textView_log);
+            }
+        };
+        button_clear.setOnClickListener(onClickListener_clear);
 
 
 
@@ -53,8 +90,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     protected void print_banner(TextView textView){
-        textView.setText("");
-        textView.append("         _.._..,_,_\n");
+        textView.setText("         _.._..,_,_\n");
         textView.append("        (          )\n");
         textView.append("         ]~,\"-.-~~[\n");
         textView.append("       .=])' (;  ([\n");
@@ -116,6 +152,79 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    protected void logAM(TextView textView) {
+        textView.append("\nQuery Accessibility Services\n\n");
+        final AccessibilityManager accessibilityManager = (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
+
+        List<AccessibilityServiceInfo> runningServices = accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityEvent.TYPES_ALL_MASK);
+        if (runningServices.isEmpty()){
+            textView.append("There is no accessibility service\n");
+        } else{
+            for (AccessibilityServiceInfo service : runningServices){
+                textView.append(service.toString()+"\n");
+
+            }
+        }
+
+    }
+
+    protected void scanPermission(TextView textView){
+        final boolean foo, bar;
+        textView.append("\nScan function was invoked!\n\n");
+        textView.append("Scanning for overlay permission\n");
+        textView.append("Result: ");
+        foo = overlayCheck(textView);
+        bar = accessibilityCheck();
+        if(foo){
+            textView.append("android.permission.SYSTEM_ALERT_WINDOW is enabled\n");
+        } else{
+            textView.append("android.permission.SYSTEM_ALERT_WINDOW is disabled\n");
+        }
+        textView.append("\nScanning for accessibility permission\n");
+        textView.append("Result: ");
+        if(bar){
+            textView.append("Accessibility is enabled\n");
+        } else{
+            textView.append("Accessibility is disabled\n");
+        }
+
+    }
+
+    protected boolean accessibilityCheck(){
+        AccessibilityManager accessibilityManager = (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
+
+        List<AccessibilityServiceInfo> runningServices = accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityEvent.TYPES_ALL_MASK);
+        for (AccessibilityServiceInfo service : runningServices) {
+            // if (ids.contains(service.getId())) {
+            // Compare your whitelist with the service ID
+            //}
+            return true;
+        }
+        return false;
+    }
+
+    protected boolean overlayCheck(TextView textView){
+        PackageManager packageManager = getPackageManager();
+
+        // Get a list of all installed applications on the device
+        List<ApplicationInfo> applications = packageManager.getInstalledApplications(PackageManager.GET_META_DATA);
+
+        // Loop through each application and check if it has the SYSTEM_WINDOW_ALERT permission
+        boolean isPermissionSet = false;
+        for (ApplicationInfo application : applications) {
+            try {
+                // Check if the application has the SYSTEM_WINDOW_ALERT permission
+                if (packageManager.checkPermission("android.permission.SYSTEM_ALERT_WINDOW", application.packageName) == PackageManager.PERMISSION_GRANTED) {
+                    isPermissionSet = true;
+                    textView.append("\nPackage name: "+application.packageName+"\n");
+                    break;
+                }
+            } catch (Exception e) {
+                // Handle exceptions here
+            }
+        }
+        return isPermissionSet;
+    }
 
 
 }
