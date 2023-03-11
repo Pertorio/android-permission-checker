@@ -21,6 +21,7 @@ import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -215,9 +216,17 @@ public class MainActivity extends AppCompatActivity {
             try {
                 // Check if the application has the SYSTEM_WINDOW_ALERT permission
                 if (packageManager.checkPermission("android.permission.SYSTEM_ALERT_WINDOW", application.packageName) == PackageManager.PERMISSION_GRANTED) {
-                    isPermissionSet = true;
-                    textView.append("\nPackage name: "+application.packageName+"\n");
-                    break;
+                    //Check if it is the system package
+                    if(!isSystemPackage(application)){
+                        //Check blacklist
+                        if(isOnBlackList(application)) {
+                            //textView.append("Not in the whiteList");
+                            isPermissionSet = true;
+                            textView.append("\nPackage name: " + application.packageName + "\n");
+                            break;
+                        }
+                    }
+
                 }
             } catch (Exception e) {
                 // Handle exceptions here
@@ -225,6 +234,29 @@ public class MainActivity extends AppCompatActivity {
         }
         return isPermissionSet;
     }
+
+
+    protected boolean isSystemPackage(ApplicationInfo applicationInfo) {
+        try {
+            return (applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
+        } catch (Exception e) {
+            // Package not found
+            return false;
+        }
+    }
+
+    protected boolean isOnBlackList(ApplicationInfo applicationInfo){
+        //Initialize the Blacklist array
+        List<String> blackList = new ArrayList<>();
+        blackList.add("This is the package name");
+
+        if(blackList.contains(applicationInfo.packageName)){
+            return true;
+        } else{
+            return false;
+        }
+    }
+
 
 
 }
