@@ -140,8 +140,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 final boolean system = protLevel == PROTECTION_SIGNATURE;
                 final boolean dangerous = protLevel == PROTECTION_DANGEROUS;
-                final boolean granted = (packageInfo.requestedPermissionsFlags[i]
-                        & REQUESTED_PERMISSION_GRANTED) != 0;
+                final boolean granted = (packageInfo.requestedPermissionsFlags[i] & REQUESTED_PERMISSION_GRANTED) != 0;
                 if(granted){
                     textView.append(requestedPerm+"\n");
                 }
